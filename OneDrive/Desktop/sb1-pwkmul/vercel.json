@@ -3,6 +3,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/analyze.js": {
+      "runtime": "@vercel/node@18"
+    }
+  },
   "env": {
     "OPENAI_API_KEY": "${OPENAI_API_KEY}"
   }
