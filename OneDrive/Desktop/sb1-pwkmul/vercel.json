@@ -1,1 +1,1 @@
-{ "functions": { "api/analyze.js": { "runtime": "nodejs18" } } } 
+{ "functions": { "api/analyze.js": { "runtime": "@vercel/node@18" } } } 
