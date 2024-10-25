@@ -5,7 +5,7 @@
   "framework": "vite",
   "functions": {
     "api/analyze.js": {
-      "runtime": "@vercel/node@18"
+      "runtime": "nodejs18.x"
     }
   },
   "env": {
