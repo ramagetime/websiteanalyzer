@@ -1,1 +1,9 @@
-{ "functions": { "api/analyze.js": { "runtime": "@vercel/node@18" } } } 
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "env": {
+    "OPENAI_API_KEY": "@openai-api-key"
+  }
+}
