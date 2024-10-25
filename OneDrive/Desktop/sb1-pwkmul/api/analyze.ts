@@ -1,71 +1,49 @@
-import OpenAI from 'openai';
-import { createClient } from '@vercel/edge';
+import { NextApiRequest, NextApiResponse } from 'next'
+import { OpenAI } from 'openai'
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY,
-  organization: process.env.OPENAI_ORG_ID,
-});
-
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(request: Request) {
-  if (request.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const { url } = await request.json();
+    const { url } = req.body
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' })
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
 
     // Fetch website content
-    const websiteResponse = await fetch(url);
-    if (!websiteResponse.ok) {
-      throw new Error(`Failed to fetch website: ${websiteResponse.statusText}`);
-    }
-    const content = await websiteResponse.text();
+    const response = await fetch(url)
+    const html = await response.text()
 
-    // Analyze with OpenAI
+    // Create a prompt for OpenAI
+    const prompt = `Analyze this website HTML and provide insights about:
+    1. Overall design and layout
+    2. SEO readiness
+    3. Key improvement suggestions
+    4. Performance considerations
+    
+    HTML: ${html.substring(0, 4000)}` // Limiting HTML to avoid token limits
+
     const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
       model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional website analyzer. Provide a concise but comprehensive analysis of the website content, including SEO recommendations, content structure evaluation, and potential improvements. Format your response in clear sections."
-        },
-        {
-          role: "user",
-          content: `Please analyze this website content: ${content}`
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
+    })
 
-    const analysis = completion.choices[0]?.message?.content;
-    if (!analysis) {
-      throw new Error('No analysis generated');
-    }
+    const analysis = completion.choices[0].message.content
 
-    return new Response(
-      JSON.stringify({ analysis }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return res.status(200).json({ analysis })
+    
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return new Response(
-      JSON.stringify({ error: message }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    console.error('Analysis error:', error)
+    return res.status(500).json({ error: 'Failed to analyze website' })
   }
 }
