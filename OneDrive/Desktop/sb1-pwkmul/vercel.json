@@ -4,6 +4,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
+    "OPENAI_API_KEY": "${OPENAI_API_KEY}"
   }
 }
